@@ -1,15 +1,20 @@
 package com.jardinahora.backend.controllers;
 
+import com.jardinahora.backend.models.FuncaoUsuarioModel;
 import com.jardinahora.backend.models.UsuarioModel;
 import com.jardinahora.backend.repositories.UsuarioRepository;
 import com.jardinahora.backend.dtos.UsuarioDTO;
+import com.jardinahora.backend.services.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +27,14 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
+
+    @GetMapping("/user")
+    public Principal user(Principal principal) {
+        return principal;
+    }
 
     // CRUD Usuario
     @PostMapping("/usuario")
@@ -66,6 +79,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/usuario/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> deleteUsuario(@PathVariable(value = "id") UUID id) {
         Optional<UsuarioModel> usuario0 = usuarioRepository.findById(id);
         if (usuario0.isEmpty()) {
@@ -74,4 +88,15 @@ public class UsuarioController {
         usuarioRepository.delete(usuario0.get());
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Usuario deletado com sucesso.");
     }
+
+    @PostMapping("/usuario/{email}")
+    public void mudarParaAdmin(@PathVariable String email) {
+        usuarioService.findByEmail(email).ifPresent(usuario -> {
+            usuario.setFuncao(FuncaoUsuarioModel.ADMIN);
+            usuarioService.salvar(usuario);
+        });
+    }
+
+
+
 }

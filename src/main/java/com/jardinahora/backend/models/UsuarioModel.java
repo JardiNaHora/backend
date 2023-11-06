@@ -18,7 +18,14 @@ public class UsuarioModel extends RepresentationModel<UsuarioModel> implements S
     private String nome;
     private String email;
     private String senha;
-    private String tipo;
+
+    @Column(name = "funcao")
+    @Enumerated(EnumType.STRING)
+    private FuncaoUsuarioModel funcao;
+
+    @Column(name = "fonte_registro")
+    @Enumerated(EnumType.STRING)
+    private FonteRegistroModel fonteRegistro;
 
     public UUID getId() {
         return id;
@@ -52,12 +59,20 @@ public class UsuarioModel extends RepresentationModel<UsuarioModel> implements S
         this.senha = senha;
     }
 
-    public String getTipo() {
-        return tipo;
+    public FuncaoUsuarioModel getFuncao() {
+        return funcao;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
+    public void setFuncao(FuncaoUsuarioModel funcao) {
+        this.funcao = funcao;
+    }
+
+    public FonteRegistroModel getFonteRegistro() {
+        return fonteRegistro;
+    }
+
+    public void setFonteRegistro(FonteRegistroModel fonteRegistro) {
+        this.fonteRegistro = fonteRegistro;
     }
 
 }
