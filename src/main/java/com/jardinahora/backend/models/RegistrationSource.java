@@ -1,6 +1,6 @@
 package com.jardinahora.backend.models;
 
-public enum FonteRegistroModel {
+public enum RegistrationSource {
 
     GITHUB, GOOGLE
 
