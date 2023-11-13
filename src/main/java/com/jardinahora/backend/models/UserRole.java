@@ -1,7 +1,23 @@
 package com.jardinahora.backend.models;
 
-public enum UserRole {
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    USER, ADMIN, DRIVER
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Table(name = "TB_USER_ROLES")
+public class UserRole {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "role_id")
+    private Long id;
+
+    @Column(name = "role_name")
+    private String name;
 
 }

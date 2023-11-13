@@ -11,12 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -30,9 +30,19 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/user")
+    /*@GetMapping("/user")
     public Principal user(Principal principal) {
         return principal;
+    }*/
+
+    @GetMapping("/user/get")
+    public String getAccount(Principal principal) {
+        return "Welcome back user : " + principal.getName();
+    }
+
+    @GetMapping("/user")
+    public Map<String, Object> getUser(@AuthenticationPrincipal OAuth2User oAuth2User) {
+        return oAuth2User.getAttributes();
     }
 
     // CRUD User
@@ -88,13 +98,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Usuário deletado com sucesso.");
     }
 
-    @PostMapping("/user/{email}")
+    /*@PostMapping("/user/{email}")
     public void changeToAdmin(@PathVariable String email) {
         userService.findByEmail(email).ifPresent(user -> {
-            user.setRole(UserRole.ADMIN);
+            user.setRoles(EnumSet.of(UserRole.ADMIN));
             userService.save(user);
         });
-    }
+    }*/
 
 
 
