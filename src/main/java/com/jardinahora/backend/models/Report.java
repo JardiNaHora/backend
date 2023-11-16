@@ -8,30 +8,26 @@ import java.util.Date;
 import java.util.UUID;
 
 @Entity
-@Table(name = "TB_RELATORIO")
-public class RelatorioModel extends RepresentationModel<RelatorioModel> implements Serializable {
+@Table(name = "TB_REPORT")
+public class Report extends RepresentationModel<Report> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
-    private Date dataGeracao;
+    private Date generationDate;
 
     public UUID getId() {
         return id;
     }
 
-    public void setId(UUID id) {
-        this.id = id;
+    public Date getGenerationDate() {
+        return generationDate;
     }
 
-    public Date getDataGeracao() {
-        return dataGeracao;
-    }
-
-    public void setDataGeracao(Date dataGeracao) {
-        this.dataGeracao = dataGeracao;
+    public void setGenerationDate(Date generationDate) {
+        this.generationDate = generationDate;
     }
 
 }

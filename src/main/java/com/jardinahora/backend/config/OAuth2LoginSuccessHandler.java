@@ -1,9 +1,9 @@
 package com.jardinahora.backend.config;
 
-import com.jardinahora.backend.models.FonteRegistroModel;
-import com.jardinahora.backend.models.FuncaoUsuarioModel;
-import com.jardinahora.backend.models.UsuarioModel;
-import com.jardinahora.backend.services.UsuarioService;
+import com.jardinahora.backend.models.RegistrationSource;
+import com.jardinahora.backend.models.UserRole;
+import com.jardinahora.backend.models.User;
+import com.jardinahora.backend.services.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,14 +18,16 @@ import org.springframework.security.web.authentication.SavedRequestAwareAuthenti
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
-    private final UsuarioService usuarioService;
+    /*private final UserService userService;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -41,24 +43,24 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
             Map<String, Object> attibutes = principal.getAttributes();
             //Necessário trocar a chave de email para login porque nem todo usuário do github tem um email associado.
             String email = attibutes.getOrDefault("login", "").toString();
-            String nome = attibutes.getOrDefault("name", "").toString();
-            usuarioService.findByEmail(email)
+            String name = attibutes.getOrDefault("name", "").toString();
+            userService.findByEmail(email)
                     .ifPresentOrElse(usuario -> {
-                        DefaultOAuth2User novoUsuario = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority(usuario.getFuncao().name())),
+                        DefaultOAuth2User novoUsuario = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority(usuario.getRoles().toString())),
                                 attibutes, "id");
-                        Authentication securityAuth = new OAuth2AuthenticationToken(novoUsuario, List.of(new SimpleGrantedAuthority(usuario.getFuncao().name())),
+                        Authentication securityAuth = new OAuth2AuthenticationToken(novoUsuario, usuario.getRoles().stream().map(r -> new SimpleGrantedAuthority(r.name())).collect(Collectors.toList()),
                                 oAuth2AuthenticationToken.getAuthorizedClientRegistrationId());
                         SecurityContextHolder.getContext().setAuthentication(securityAuth);
                     }, () -> {
-                        UsuarioModel usuarioModel = new UsuarioModel();
-                        usuarioModel.setFuncao(FuncaoUsuarioModel.USUARIO);
-                        usuarioModel.setEmail(email);
-                        usuarioModel.setNome(nome);
-                        usuarioModel.setFonteRegistro(FonteRegistroModel.GITHUB);
-                        usuarioService.salvar(usuarioModel);
-                        DefaultOAuth2User novoUsuario = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority(usuarioModel.getFuncao().name())),
+                        User user = new User();
+                        user.setRoles(EnumSet.of(UserRole.USER));
+                        user.setEmail(email);
+                        user.setUsername(name);
+                        user.setSource(RegistrationSource.github);
+                        userService.save(user);
+                        DefaultOAuth2User novoUsuario = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority(user.getRoles().toString())),
                                 attibutes, "id");
-                        Authentication securityAuth = new OAuth2AuthenticationToken(novoUsuario, List.of(new SimpleGrantedAuthority(usuarioModel.getFuncao().name())),
+                        Authentication securityAuth = new OAuth2AuthenticationToken(novoUsuario, user.getRoles().stream().map(r -> new SimpleGrantedAuthority(r.name())).collect(Collectors.toList()),
                                 oAuth2AuthenticationToken.getAuthorizedClientRegistrationId());
                         SecurityContextHolder.getContext().setAuthentication(securityAuth);
                     });
@@ -68,24 +70,24 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
             DefaultOAuth2User principal = (DefaultOAuth2User) authentication.getPrincipal();
             Map<String, Object> attibutes = principal.getAttributes();
             String email = attibutes.getOrDefault("email", "").toString();
-            String nome = attibutes.getOrDefault("name", "").toString();
-            usuarioService.findByEmail(email)
+            String name = attibutes.getOrDefault("name", "").toString();
+            userService.findByEmail(email)
                     .ifPresentOrElse(usuario -> {
-                        DefaultOAuth2User novoUsuario = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority(usuario.getFuncao().name())),
+                        DefaultOAuth2User novoUsuario = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority(usuario.getRoles().toString())),
                                 attibutes, "sub");
-                        Authentication securityAuth = new OAuth2AuthenticationToken(novoUsuario, List.of(new SimpleGrantedAuthority(usuario.getFuncao().name())),
+                        Authentication securityAuth = new OAuth2AuthenticationToken(novoUsuario, List.of(new SimpleGrantedAuthority(usuario.getRoles().toString())),
                                 oAuth2AuthenticationToken.getAuthorizedClientRegistrationId());
                         SecurityContextHolder.getContext().setAuthentication(securityAuth);
                     }, () -> {
-                        UsuarioModel usuarioModel = new UsuarioModel();
-                        usuarioModel.setFuncao(FuncaoUsuarioModel.USUARIO);
-                        usuarioModel.setEmail(email);
-                        usuarioModel.setNome(nome);
-                        usuarioModel.setFonteRegistro(FonteRegistroModel.GOOGLE);
-                        usuarioService.salvar(usuarioModel);
-                        DefaultOAuth2User novoUsuario = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority(usuarioModel.getFuncao().name())),
+                        User user = new User();
+                        user.setRoles(EnumSet.of(UserRole.USER));
+                        user.setEmail(email);
+                        user.setUsername(name);
+                        user.setSource(RegistrationSource.google);
+                        userService.save(user);
+                        DefaultOAuth2User novoUsuario = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority(user.getRoles().toString())),
                                 attibutes, "sub");
-                        Authentication securityAuth = new OAuth2AuthenticationToken(novoUsuario, List.of(new SimpleGrantedAuthority(usuarioModel.getFuncao().name())),
+                        Authentication securityAuth = new OAuth2AuthenticationToken(novoUsuario, List.of(new SimpleGrantedAuthority(user.getRoles().toString())),
                                 oAuth2AuthenticationToken.getAuthorizedClientRegistrationId());
                         SecurityContextHolder.getContext().setAuthentication(securityAuth);
                     });
@@ -96,6 +98,6 @@ public class OAuth2LoginSuccessHandler extends SavedRequestAwareAuthenticationSu
         this.setDefaultTargetUrl(frontendUrl+"/home");
         super.onAuthenticationSuccess(request, response, authentication);
 
-    }
+    }*/
 
 }
