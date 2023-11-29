@@ -4,6 +4,7 @@ import com.jardinahora.backend.models.UserRole;
 import com.jardinahora.backend.models.User;
 import com.jardinahora.backend.repositories.UserRepository;
 import com.jardinahora.backend.dtos.UserDTO;
+import com.jardinahora.backend.repositories.UserRoleRepository;
 import com.jardinahora.backend.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
@@ -26,6 +27,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserRoleRepository userRoleRepository;
 
     @Autowired
     private UserService userService;
@@ -98,13 +102,12 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Usuário deletado com sucesso.");
     }
 
-    /*@PostMapping("/user/{email}")
-    public void changeToAdmin(@PathVariable String email) {
-        userService.findByEmail(email).ifPresent(user -> {
-            user.setRoles(EnumSet.of(UserRole.ADMIN));
-            userService.save(user);
-        });
-    }*/
+    @PostMapping("/user/{email}/{role}")
+    public void changeToAdmin(@PathVariable String email, @PathVariable String role) {
+        User user = userRepository.findByUsername(email);
+        user.getRoles().add(userRoleRepository.findByName(role));
+        userService.save(user);
+    }
 
 
 
