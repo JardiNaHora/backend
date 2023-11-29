@@ -1,7 +1,7 @@
 spring:
 
   datasource:
-    url: jdbc:postgresql://${STAGING_DB_HOST}:${STAGING_DB_PORT}/${STAGING_DBNAME}
+    url: jdbc:postgresql://${STAGING_DB_HOST}:${STAGING_DB_PORT}/${STAGING_DB_NAME}
     username: ${STAGING_DB_USERNAME}
     password: ${STAGING_DB_PASSWORD}
     name: jardinahora
