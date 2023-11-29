@@ -17,7 +17,7 @@ spring:
             non_contextual_creation: true
         #default_schema: cadastro,sistema-embarcado,viagem
 
-    security:
+  security:
       oauth2:
         client:
           registration:
