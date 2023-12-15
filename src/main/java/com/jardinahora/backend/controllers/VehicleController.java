@@ -47,9 +47,9 @@ public class VehicleController {
     public ResponseEntity<Object> getOneVehicle(@PathVariable(value = "id") UUID id) {
         Optional<Vehicle> vehicle0 = vehicleRepository.findById(id);
         if (vehicle0.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Viagem não encontrada.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Veículo não encontrada.");
         }
-        vehicle0.get().add(linkTo(methodOn(VehicleController.class).getAllVehicle()).withRel("Lista de Viagem"));
+        vehicle0.get().add(linkTo(methodOn(VehicleController.class).getAllVehicle()).withRel("Lista de Veículo"));
         return ResponseEntity.status(HttpStatus.OK).body(vehicle0.get());
     }
 
@@ -58,7 +58,7 @@ public class VehicleController {
                                              @RequestBody @Valid VehicleDTO vehicleDTO) {
         Optional<Vehicle> vehicle0 = vehicleRepository.findById(id);
         if(vehicle0.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Viagem não encontrada.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Veículo não encontrada.");
         }
         var vehicleModel = vehicle0.get();
         BeanUtils.copyProperties(vehicleDTO, vehicleModel);
@@ -69,10 +69,10 @@ public class VehicleController {
     public ResponseEntity<Object> deleteVehicle(@PathVariable(value = "id") UUID id) {
         Optional<Vehicle> vehicle0 = vehicleRepository.findById(id);
         if (vehicle0.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Viagem não encontrada.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Veículo não encontrada.");
         }
         vehicleRepository.delete(vehicle0.get());
-        return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Viagem deletado com sucesso.");
+        return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Veículo deletado com sucesso.");
     }
 
 }
