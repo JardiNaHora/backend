@@ -10,6 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +26,8 @@ public class TravelController {
     @Autowired
     private TravelRepository travelRepository;
 
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
     // CRUD para Travel
     @PostMapping("/travel")
     public ResponseEntity<Travel> createTravel(@RequestBody @Valid TravelDTO travelDTO) {
@@ -32,7 +37,7 @@ public class TravelController {
     }
 
     @GetMapping("/travel")
-    public ResponseEntity<List<Travel>> getAllTravel() {
+    public ResponseEntity<List<Travel>> getAllTravels() {
         List<Travel> travelList = travelRepository.findAll();
         return ResponseEntity.status(HttpStatus.OK).body(travelList);
     }
@@ -43,14 +48,44 @@ public class TravelController {
         if (travel0.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Viagem não encontrada.");
         }
-        travel0.get().add(linkTo(methodOn(TravelController.class).getAllTravel()).withRel("Lista de Viagem"));
+        travel0.get().add(linkTo(methodOn(TravelController.class).getAllTravels()).withRel("Lista de Viagem"));
         return ResponseEntity.status(HttpStatus.OK).body(travel0.get());
     }
-    
+
+    // Métodos para busca por data
+    @GetMapping("/travel/byDate/{date}")
+    public ResponseEntity<List<Travel>> getTravelsByDate(@PathVariable String date) {
+        try {
+            Date parsedDate = dateFormat.parse(date);
+            List<Travel> travels = travelRepository.findByDate(parsedDate);
+            return new ResponseEntity<>(travels, HttpStatus.OK);
+        } catch (ParseException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/travel/byDateRange")
+    public ResponseEntity<List<Travel>> getTravelsByDateRange(@RequestParam String startDate, @RequestParam String endDate) {
+        try {
+            Date start = dateFormat.parse(startDate);
+            Date end = dateFormat.parse(endDate);
+            List<Travel> travels = travelRepository.findByDateBetween(start, end);
+            return new ResponseEntity<>(travels, HttpStatus.OK);
+        } catch (ParseException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // Método para obter todas as datas distintas
+    @GetMapping("/travel/distinctDates")
+    public ResponseEntity<List<String>> getDistinctDates() {
+        List<String> distinctDates = travelRepository.findDistinctDates();
+        return ResponseEntity.status(HttpStatus.OK).body(distinctDates);
+    }
 
     @PutMapping("/travel/{id}")
     public ResponseEntity<Object> updateTravel(@PathVariable(value = "id") UUID id,
-                                              @RequestBody @Valid TravelDTO travelDTO) {
+                                               @RequestBody @Valid TravelDTO travelDTO) {
         Optional<Travel> travel0 = travelRepository.findById(id);
         if(travel0.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Viagem não encontrada.");
@@ -58,6 +93,18 @@ public class TravelController {
         var travelModel = travel0.get();
         BeanUtils.copyProperties(travelDTO, travelModel);
         return ResponseEntity.status(HttpStatus.OK).body(travelRepository.save(travelModel));
+    }
+
+    // Método para deletar por data
+    @DeleteMapping("/travel/byDate/{date}")
+    public ResponseEntity<String> deleteTravelByDate(@PathVariable String date) {
+        try {
+            Date parsedDate = dateFormat.parse(date);
+            travelRepository.deleteByDate(parsedDate);
+            return ResponseEntity.status(HttpStatus.OK).body("Viagens na data " + date + " deletadas com sucesso.");
+        } catch (ParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Formato de data inválido.");
+        }
     }
 
     @DeleteMapping("/travel/{id}")
@@ -68,36 +115,6 @@ public class TravelController {
         }
         travelRepository.delete(travel0.get());
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Viagem deletado com sucesso.");
-    }
-    
-
-    // Métodos para busca por data
-    @GetMapping("/travel/byDate/{date}")
-    public ResponseEntity<List<Travel>> getTravelByDate(@PathVariable(value = "date") String date) {
-        List<Travel> travelList = travelRepository.findByDate(date);
-        return ResponseEntity.status(HttpStatus.OK).body(travelList);
-    }
-
-    @GetMapping("/travel/betweenDates/{startDate}/{endDate}")
-    public ResponseEntity<List<Travel>> getTravelBetweenDates(
-            @PathVariable(value = "startDate") String startDate,
-            @PathVariable(value = "endDate") String endDate) {
-        List<Travel> travelList = travelRepository.findByDateBetween(startDate, endDate);
-        return ResponseEntity.status(HttpStatus.OK).body(travelList);
-    }
-
-    // Método para obter todas as datas distintas
-    @GetMapping("/travel/distinctDates")
-    public ResponseEntity<List<String>> getDistinctDates() {
-        List<String> distinctDates = travelRepository.findDistinctDate();
-        return ResponseEntity.status(HttpStatus.OK).body(distinctDates);
-    }
-
-    // Método para deletar por data
-    @DeleteMapping("/travel/byDate/{date}")
-    public ResponseEntity<Object> deleteTravelByDate(@PathVariable(value = "date") String date) {
-        travelRepository.deleteByDate(date);
-        return ResponseEntity.status(HttpStatus.OK).body("Viagens na data " + date + " deletadas com sucesso.");
     }
 
 }
