@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmação de Cadastro - JardiNaHora</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin: 0;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #3498db;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        .token-info {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-size: 12px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 th:text="${appName}">JardiNaHora</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Bem-vindo ao <span th:text="${appName}">JardiNaHora</span>!</h2>
+            
+            <p>Olá,</p>
+            
+            <p>Obrigado por se cadastrar no sistema de monitoramento da Jardineira do IFCE Campus Maracanaú.</p>
+            
+            <p>Para ativar sua conta e começar a usar o sistema, por favor, confirme seu cadastro clicando no botão abaixo:</p>
+            
+            <div style="text-align: center;">
+                <a th:href="${confirmationUrl}" class="button">Confirmar Cadastro</a>
+            </div>
+            
+            <p>Ou copie e cole o seguinte link no seu navegador:</p>
+            
+            <div class="token-info">
+                <a th:href="${confirmationUrl}" th:text="${confirmationUrl}"></a>
+            </div>
+            
+            <p><strong>Importante:</strong> Este link expira em 24 horas. Se você não solicitou este cadastro, pode ignorar este e-mail.</p>
+            
+            <p>Se você tiver alguma dúvida ou precisar de ajuda, entre em contato com a administração do campus.</p>
+        </div>
+        
+        <div class="footer">
+            <p>Este é um e-mail automático, por favor não responda.</p>
+            <p>&copy; 2026 <span th:text="${appName}">JardiNaHora</span> - IFCE Campus Maracanaú</p>
+        </div>
+    </div>
+</body>
+</html>

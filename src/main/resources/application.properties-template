@@ -15,4 +15,23 @@ spring.security.oauth2.client.registration.google.client-id=
 spring.security.oauth2.client.registration.google.client-secret=
 spring.security.oauth2.client.registration.google.scope=email, profile
 
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=
+spring.mail.password=
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+spring.mail.properties.mail.smtp.connectiontimeout=5000
+spring.mail.properties.mail.smtp.timeout=5000
+spring.mail.properties.mail.smtp.writetimeout=5000
+
 frontend.url=
+
+app.name=JardiNaHora
+app.notification.proximity-distance-km=0.5
+# Firebase FCM - Opção B: use app.firebase.credentials-json-base64 (Base64 do JSON)
+# Opção A: app.firebase.credentials-path=file:./firebase-credentials.json
+app.firebase.enabled=false
+app.firebase.credentials-path=
+app.firebase.credentials-json-base64=

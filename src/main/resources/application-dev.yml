@@ -1,5 +1,4 @@
 spring:
-
   datasource:
     url: jdbc:postgresql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_DB_NAME}
     username: ${DEV_DB_USERNAME}
@@ -9,26 +8,67 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-      #ddl-auto=: create-drop
     properties:
       hibernate:
         jdbc:
           lob:
             non_contextual_creation: true
-        #default_schema: cadastro,sistema-embarcado,viagem
 
   security:
-      oauth2:
-        client:
-          registration:
-            github:
-              client-id: ${GITHUB_CLIENT_ID}
-              client-secret: ${GITHUB_CLIENT_SECRET}
-              scope: user:email, read:user
-            google:
-              client-id: ${GOOGLE_CLIENT_ID}
-              client-secret: ${GOOGLE_CLIENT_SECRET}
-              scope: email, profile
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: user:email, read:user
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: email, profile
+
+  # E-mail: Gmail (senha de app)
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+  # Cache (padrão em memória)
+  cache:
+    type: simple
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    mail:
+      enabled: false
 
 frontend:
   url: ${FRONTEND_URL}
+
+app:
+  name: ${APP_NAME:JardiNaHora}
+  notification:
+    proximity-distance-km: ${NOTIFICATION_PROXIMITY_DISTANCE_KM:0.5}
+  # Firebase FCM: FIREBASE_CREDENTIALS_JSON_BASE64 (Base64 do JSON)
+  firebase:
+    enabled: ${FIREBASE_ENABLED:false}
+    credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
+    credentials-json-base64: ${FIREBASE_CREDENTIALS_JSON_BASE64:}

@@ -44,14 +44,12 @@ public class SecurityConfig {
     @Autowired
     private CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
+    @Autowired
+    private UserDetailsServiceCustom userDetailsServiceCustom;
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return new UserDetailsServiceCustom();
     }
 
     @Value("${frontend.url}")
@@ -84,7 +82,7 @@ public class SecurityConfig {
 
         AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
 
-        builder.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
+        builder.userDetailsService(userDetailsServiceCustom).passwordEncoder(passwordEncoder());
 
         AuthenticationManager manager = builder.build();
 
@@ -95,8 +93,18 @@ public class SecurityConfig {
 //                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(customizer -> customizer
                         .requestMatchers("/home/auth").permitAll()
+                        // Endpoint público para receber dados do sistema embarcado (ESP32)
+                        // TODO: Considerar adicionar autenticação por token/API key para maior segurança
+                        .requestMatchers("/api/embedded-system/data").permitAll()
+                        // Endpoints públicos para confirmação de e-mail
+                        .requestMatchers("/user/confirm-email").permitAll()
+                        .requestMatchers("/user/resend-confirmation").permitAll()
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/api/notifications/**").hasAuthority("USER")
+                        .requestMatchers("/api/realtime/**").hasAuthority("USER")
                         .requestMatchers("/user/**").hasAuthority("USER")
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin( form -> {
@@ -157,9 +165,10 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(frontendUrl));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+        // Permite métodos necessários para o sistema embarcado e frontend
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type", "X-Requested-With"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

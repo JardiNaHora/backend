@@ -5,6 +5,7 @@ import com.jardinahora.backend.models.User;
 import com.jardinahora.backend.repositories.UserRepository;
 import com.jardinahora.backend.dtos.UserDTO;
 import com.jardinahora.backend.repositories.UserRoleRepository;
+import com.jardinahora.backend.responses.BaseResponse;
 import com.jardinahora.backend.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
@@ -14,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -58,15 +62,12 @@ public class UserController {
     }
 
     @GetMapping("/user-all")
-    public ResponseEntity<List<User>> getAllUser() {
-        List<User> userList = userRepository.findAll();
-        if(!userList.isEmpty()) {
-            for(User user : userList) {
-                UUID id = user.getId();
-                user.add(linkTo(methodOn(UserController.class).getOneUser(id)).withSelfRel());
-            }
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(userList);
+    public ResponseEntity<Page<User>> getAllUser(
+            @PageableDefault(size = 20, sort = "username") Pageable pageable) {
+        Page<User> userPage = userRepository.findAll(pageable);
+        userPage.getContent().forEach(user ->
+                user.add(linkTo(methodOn(UserController.class).getOneUser(user.getId())).withSelfRel()));
+        return ResponseEntity.status(HttpStatus.OK).body(userPage);
     }
 
     @GetMapping("/user/{id}")
@@ -75,7 +76,7 @@ public class UserController {
         if (user0.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
         }
-        user0.get().add(linkTo(methodOn(UserController.class).getAllUser()).withRel("Lista de Usuários"));
+        user0.get().add(linkTo(methodOn(UserController.class).getAllUser(org.springframework.data.domain.Pageable.unpaged())).withRel("Lista de Usuários"));
         return ResponseEntity.status(HttpStatus.OK).body(user0.get());
     }
 
@@ -109,6 +110,33 @@ public class UserController {
         userService.save(user);
     }
 
+    /**
+     * Endpoint para confirmar cadastro via token de confirmação
+     * 
+     * RN05: Os usuários devem confirmar o seu cadastro no sistema por meio de 
+     * um link enviado para o seu e-mail.
+     * 
+     * @param token Token de confirmação recebido por e-mail
+     * @return Resposta com status da confirmação
+     */
+    @GetMapping("/user/confirm-email")
+    public ResponseEntity<BaseResponse> confirmEmail(@RequestParam String token) {
+        BaseResponse response = userService.confirmEmail(token);
+        HttpStatus httpStatus = HttpStatus.valueOf(Integer.parseInt(response.getCode()));
+        return ResponseEntity.status(httpStatus).body(response);
+    }
 
+    /**
+     * Endpoint para reenviar e-mail de confirmação
+     * 
+     * @param email E-mail do usuário que deseja receber novo link de confirmação
+     * @return Resposta com status da operação
+     */
+    @PostMapping("/user/resend-confirmation")
+    public ResponseEntity<BaseResponse> resendConfirmationEmail(@RequestParam String email) {
+        BaseResponse response = userService.resendConfirmationEmail(email);
+        HttpStatus httpStatus = HttpStatus.valueOf(Integer.parseInt(response.getCode()));
+        return ResponseEntity.status(httpStatus).body(response);
+    }
 
 }

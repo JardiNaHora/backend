@@ -1,0 +1,192 @@
+### 0) Login com usuário de desenvolvimento criado automaticamente
+###    Usuário:  dev@jardinahora.local
+###    Senha:    dev123
+POST http://localhost:8080/sign-in
+Content-Type: application/x-www-form-urlencoded
+
+username=dev@jardinahora.local&password=dev123
+
+###
+### 1) Registrar token de dispositivo para notificações
+POST http://localhost:8080/api/notifications/device-token
+Content-Type: application/json
+
+{
+  "token": "teste-token-local-123",
+  "deviceType": "WEB",
+  "deviceId": "dev-browser-01",
+  "latitude": -3.876000,
+  "longitude": -38.626000,
+  "notificationEnabled": true
+}
+
+###
+### 2) Definir localização do usuário (ponto de embarque)
+PUT http://localhost:8080/api/notifications/user-location?latitude=-3.876000&longitude=-38.626000
+
+###
+### 3) Simular envio de dados do sistema embarcado (ESP32) - ponto intermediário genérico
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.875500,-38.625500",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:15:00"
+}
+
+### 3.a) IFCE (ponto inicial da rota)
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.872985,-38.610825",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:00:00"
+}
+
+### 3.b)
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.872426,-38.610687",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:02:00"
+}
+
+### 3.c)
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.871223,-38.609633",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:04:00"
+}
+
+### 3.d)
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.870958,-38.611044",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:06:00"
+}
+
+### 3.e)
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.870314,-38.613115",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:08:00"
+}
+
+### 3.f)
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.869497,-38.615702",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:10:00"
+}
+
+### 3.g)
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.868899,-38.617530",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:12:00"
+}
+
+### 3.h)
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.867824,-38.618903",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:14:00"
+}
+
+### 3.i) Metrô (ponto principal)
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.868138,-38.620047",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:16:00"
+}
+
+### 3.j) Metrô - opção de parada anterior
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.867901,-38.619558",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:17:00"
+}
+
+### 3.k) Metrô - opção de parada posterior
+POST http://localhost:8080/api/embedded-system/data
+Content-Type: application/json
+
+{
+  "vehicleId": "JARDINEIRA-01",
+  "gpsPosition": "-3.868092,-38.619878",
+  "gyroscopeSensor": 0.0,
+  "accelerometerSensor": 0.0,
+  "dataCollectionTime": "2025-01-01T08:18:00"
+}
+
+###
+### 4) Listar notificações do usuário logado (paginado)
+GET http://localhost:8080/api/notifications?page=0&size=10
+
+###
+### 5) Consultar quantidade de notificações não lidas
+GET http://localhost:8080/api/notifications/unread-count
+
+###
+### 6) (Opcional) Marcar uma notificação como lida
+###    Só use este bloco depois que o GET /api/notifications
+###    retornar pelo menos um item em "content".
+###    Substitua {id} pelo UUID real da notificação.
+### PUT http://localhost:8080/api/notifications/{id}/read
+
+###
+### 7) (Opcional) Reenvio de confirmação de e-mail para outro usuário cadastrado
+### POST http://localhost:8080/user/resend-confirmation
+### Content-Type: application/x-www-form-urlencoded
+###
+### email=algum_outro_email@ifce.edu.br

@@ -32,6 +32,26 @@ build/
 ### VS Code ###
 .vscode/
 
-### Application Properties ###
+### Application Properties / Env ###
 src/main/resources/application.properties
 src/main/resources/application.yml
+.env
+.env.local
+.env.*.local
+
+### Firebase (não versionar credenciais) ###
+firebase-credentials.json
+*-firebase-adminsdk-*.json
+firebase-credentials-base64.txt
+
+### HTTP Client (arquivos locais do IntelliJ) ###
+.idea/httpRequests/
+
+### Logs e arquivos temporários ###
+*.log
+*.tmp
+*.bak
+
+### Sistema operacional ###
+.DS_Store
+Thumbs.db

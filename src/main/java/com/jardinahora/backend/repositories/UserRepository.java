@@ -13,5 +13,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     User findByUsername(String username);
 
     Optional<User> findByUsernameAndProviderId(String username, String providerId);
+    
+    /**
+     * Busca usuário por token de confirmação
+     */
+    Optional<User> findByConfirmationToken(String confirmationToken);
 
 }

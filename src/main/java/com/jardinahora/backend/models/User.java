@@ -51,6 +51,15 @@ public class User extends RepresentationModel<User> implements Serializable {
     @Column(name = "provider_id")
     private String providerId;
 
+    @Column(name = "email_confirmed")
+    private boolean emailConfirmed = false;
+
+    @Column(name = "confirmation_token", length = 255)
+    private String confirmationToken;
+
+    @Column(name = "token_expiration")
+    private java.util.Date tokenExpiration;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id"))
