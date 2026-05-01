@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,6 +67,7 @@ class TravelControllerTest {
         ResponseEntity<Object> response = travelController.createTravel(travelDTO);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(travelRepository, never()).save(any(Travel.class));
     }
 
     private static Date toDate(LocalDate date) {
