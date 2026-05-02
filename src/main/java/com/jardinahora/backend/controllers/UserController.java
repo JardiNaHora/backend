@@ -103,6 +103,7 @@ public class UserController {
     }
 
     @PostMapping("/user/{email}/{role}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public void changeToAdmin(@PathVariable String email, @PathVariable String role) {
         User user = userRepository.findByUsername(email);
         user.getRoles().add(userRoleRepository.findByName(role));

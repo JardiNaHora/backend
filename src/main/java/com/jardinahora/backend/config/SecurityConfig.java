@@ -21,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -96,6 +97,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(customizer -> customizer
                         .requestMatchers("/home/auth").permitAll()
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/user/*/*").hasAuthority("ADMIN")
                         .requestMatchers("/user/**").hasAuthority("USER")
                         .anyRequest().authenticated()
                 )
