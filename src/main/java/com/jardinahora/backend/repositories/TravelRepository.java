@@ -1,6 +1,7 @@
 package com.jardinahora.backend.repositories;
 
 import com.jardinahora.backend.models.Travel;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -15,7 +16,8 @@ public interface TravelRepository extends JpaRepository<Travel, UUID> {
     List<Travel> findByDateBetween(Date startDate, Date endDate);
 
     @Query("SELECT DISTINCT t.date FROM Travel t")
-    List<String> findDistinctDates();
+    List<Date> findDistinctDates();
 
+    @Transactional
     void deleteByDate(Date date);
 }
