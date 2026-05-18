@@ -16,8 +16,11 @@ public class Travel extends RepresentationModel<Travel> implements Serializable 
     private UUID id;
     private String driver;
     private String vehicle;
+    @Temporal(TemporalType.DATE)
     private Date date;
+    @Temporal(TemporalType.TIME)
     private Date startTime;
+    @Temporal(TemporalType.TIME)
     private Date endTime;
     private Integer distanceTraveled;
     private Integer numberOfTrips;
