@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -88,6 +89,7 @@ public class TravelController {
     public ResponseEntity<List<String>> getDistinctDates() {
         List<String> distinctDates = travelRepository.findDistinctDates()
                 .stream()
+                .filter(Objects::nonNull)
                 .map(TravelController::formatDate)
                 .toList();
         return ResponseEntity.status(HttpStatus.OK).body(distinctDates);

@@ -12,6 +12,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -73,8 +74,9 @@ class TravelControllerTest {
     void getDistinctDatesFormatsRepositoryDates() {
         TravelRepository travelRepository = mock(TravelRepository.class);
         TravelController controller = controllerWith(travelRepository);
-        when(travelRepository.findDistinctDates()).thenReturn(List.of(
+        when(travelRepository.findDistinctDates()).thenReturn(Arrays.asList(
                 toDate(LocalDate.of(2024, 8, 5)),
+                null,
                 toDate(LocalDate.of(2024, 8, 6))
         ));
 
