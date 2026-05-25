@@ -16,7 +16,11 @@ import java.util.stream.Collectors;
 
 public class UserDetailsServiceCustom implements UserDetailsService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public UserDetailsServiceCustom(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
