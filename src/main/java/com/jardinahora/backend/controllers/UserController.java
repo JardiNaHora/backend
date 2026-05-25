@@ -5,6 +5,7 @@ import com.jardinahora.backend.models.User;
 import com.jardinahora.backend.repositories.UserRepository;
 import com.jardinahora.backend.dtos.UserDTO;
 import com.jardinahora.backend.repositories.UserRoleRepository;
+import com.jardinahora.backend.responses.BaseResponse;
 import com.jardinahora.backend.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
@@ -51,13 +52,14 @@ public class UserController {
 
     // CRUD User
     @PostMapping("/user")
-    public ResponseEntity<User> createUser(@RequestBody @Valid UserDTO userDTO) {
-        var userModel = new User();
-        BeanUtils.copyProperties(userDTO, userModel);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(userModel));
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<BaseResponse> createUser(@RequestBody @Valid UserDTO userDTO) {
+        BaseResponse response = userService.registerAccount(userDTO);
+        return ResponseEntity.status(Integer.parseInt(response.getCode())).body(response);
     }
 
     @GetMapping("/user-all")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<User>> getAllUser() {
         List<User> userList = userRepository.findAll();
         if(!userList.isEmpty()) {
@@ -92,7 +94,7 @@ public class UserController {
     }
 
     @DeleteMapping("/user/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> deleteUser(@PathVariable(value = "id") UUID id) {
         Optional<User> user0 = userRepository.findById(id);
         if (user0.isEmpty()) {
@@ -103,10 +105,24 @@ public class UserController {
     }
 
     @PostMapping("/user/{email}/{role}")
-    public void changeToAdmin(@PathVariable String email, @PathVariable String role) {
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Object> changeToAdmin(@PathVariable String email, @PathVariable String role) {
         User user = userRepository.findByUsername(email);
-        user.getRoles().add(userRoleRepository.findByName(role));
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+        }
+
+        UserRole userRole = userRoleRepository.findByName(role);
+        if (userRole == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Perfil de usuário inválido.");
+        }
+
+        if (user.getRoles() == null) {
+            user.setRoles(new HashSet<>());
+        }
+        user.getRoles().add(userRole);
         userService.save(user);
+        return ResponseEntity.status(HttpStatus.OK).body("Perfil de usuário atualizado com sucesso.");
     }
 
 
