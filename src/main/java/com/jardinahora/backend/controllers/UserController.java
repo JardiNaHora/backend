@@ -103,10 +103,22 @@ public class UserController {
     }
 
     @PostMapping("/user/{email}/{role}")
-    public void changeToAdmin(@PathVariable String email, @PathVariable String role) {
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Object> changeToAdmin(@PathVariable String email, @PathVariable String role) {
         User user = userRepository.findByUsername(email);
-        user.getRoles().add(userRoleRepository.findByName(role));
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+        }
+        UserRole userRole = userRoleRepository.findByName(role);
+        if (userRole == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Role inválida.");
+        }
+        if (user.getRoles() == null) {
+            user.setRoles(new HashSet<>());
+        }
+        user.getRoles().add(userRole);
         userService.save(user);
+        return ResponseEntity.status(HttpStatus.OK).body("Role atualizada com sucesso.");
     }
 
 
