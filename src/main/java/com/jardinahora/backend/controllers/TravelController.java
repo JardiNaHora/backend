@@ -8,9 +8,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -26,7 +28,7 @@ public class TravelController {
     @Autowired
     private TravelRepository travelRepository;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static final String DATE_PATTERN = "yyyy-MM-dd";
 
     // CRUD para Travel
     @PostMapping("/travel")
@@ -56,7 +58,7 @@ public class TravelController {
     @GetMapping("/travel/byDate/{date}")
     public ResponseEntity<List<Travel>> getTravelsByDate(@PathVariable String date) {
         try {
-            Date parsedDate = dateFormat.parse(date);
+            Date parsedDate = parseDate(date);
             List<Travel> travels = travelRepository.findByDate(parsedDate);
             return new ResponseEntity<>(travels, HttpStatus.OK);
         } catch (ParseException e) {
@@ -67,8 +69,8 @@ public class TravelController {
     @GetMapping("/travel/byDateRange")
     public ResponseEntity<List<Travel>> getTravelsByDateRange(@RequestParam String startDate, @RequestParam String endDate) {
         try {
-            Date start = dateFormat.parse(startDate);
-            Date end = dateFormat.parse(endDate);
+            Date start = parseDate(startDate);
+            Date end = parseDate(endDate);
             List<Travel> travels = travelRepository.findByDateBetween(start, end);
             return new ResponseEntity<>(travels, HttpStatus.OK);
         } catch (ParseException e) {
@@ -97,9 +99,10 @@ public class TravelController {
 
     // Método para deletar por data
     @DeleteMapping("/travel/byDate/{date}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<String> deleteTravelByDate(@PathVariable String date) {
         try {
-            Date parsedDate = dateFormat.parse(date);
+            Date parsedDate = parseDate(date);
             travelRepository.deleteByDate(parsedDate);
             return ResponseEntity.status(HttpStatus.OK).body("Viagens na data " + date + " deletadas com sucesso.");
         } catch (ParseException e) {
@@ -108,6 +111,7 @@ public class TravelController {
     }
 
     @DeleteMapping("/travel/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> deleteTravel(@PathVariable(value = "id") UUID id) {
         Optional<Travel> travel0 = travelRepository.findById(id);
         if (travel0.isEmpty()) {
@@ -115,6 +119,17 @@ public class TravelController {
         }
         travelRepository.delete(travel0.get());
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Viagem deletado com sucesso.");
+    }
+
+    private Date parseDate(String value) throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN);
+        dateFormat.setLenient(false);
+        ParsePosition parsePosition = new ParsePosition(0);
+        Date parsedDate = dateFormat.parse(value, parsePosition);
+        if (parsedDate == null || parsePosition.getIndex() != value.length()) {
+            throw new ParseException("Formato de data inválido.", parsePosition.getErrorIndex());
+        }
+        return parsedDate;
     }
 
 }
