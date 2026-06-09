@@ -73,7 +73,7 @@ class TravelControllerTest {
 
     @Test
     void distinctDatesFormatsRepositoryDatesAsIsoStrings() {
-        Date date = Date.from(LocalDate.of(2024, 8, 5).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date date = java.sql.Date.valueOf(LocalDate.of(2024, 8, 5));
         when(travelRepository.findDistinctDates()).thenReturn(List.of(date));
 
         ResponseEntity<List<String>> response = travelController.getDistinctDates();

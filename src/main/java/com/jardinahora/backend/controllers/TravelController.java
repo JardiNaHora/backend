@@ -16,6 +16,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -153,7 +154,7 @@ public class TravelController {
     }
 
     private String formatDate(Date date) {
-        return date.toInstant().atZone(ZONE_ID).toLocalDate().format(DATE_FORMATTER);
+        return Instant.ofEpochMilli(date.getTime()).atZone(ZONE_ID).toLocalDate().format(DATE_FORMATTER);
     }
 
 }
