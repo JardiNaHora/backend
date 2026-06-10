@@ -8,10 +8,14 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -26,13 +30,15 @@ public class TravelController {
     @Autowired
     private TravelRepository travelRepository;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
     // CRUD para Travel
     @PostMapping("/travel")
     public ResponseEntity<Travel> createTravel(@RequestBody @Valid TravelDTO travelDTO) {
         var travelModel = new Travel();
-        BeanUtils.copyProperties(travelDTO, travelModel);
+        try {
+            copyTravelProperties(travelDTO, travelModel);
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(travelRepository.save(travelModel));
     }
 
@@ -56,10 +62,10 @@ public class TravelController {
     @GetMapping("/travel/byDate/{date}")
     public ResponseEntity<List<Travel>> getTravelsByDate(@PathVariable String date) {
         try {
-            Date parsedDate = dateFormat.parse(date);
+            Date parsedDate = parseTravelDate(date);
             List<Travel> travels = travelRepository.findByDate(parsedDate);
             return new ResponseEntity<>(travels, HttpStatus.OK);
-        } catch (ParseException e) {
+        } catch (DateTimeParseException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
@@ -67,11 +73,11 @@ public class TravelController {
     @GetMapping("/travel/byDateRange")
     public ResponseEntity<List<Travel>> getTravelsByDateRange(@RequestParam String startDate, @RequestParam String endDate) {
         try {
-            Date start = dateFormat.parse(startDate);
-            Date end = dateFormat.parse(endDate);
+            Date start = parseTravelDate(startDate);
+            Date end = parseTravelDate(endDate);
             List<Travel> travels = travelRepository.findByDateBetween(start, end);
             return new ResponseEntity<>(travels, HttpStatus.OK);
-        } catch (ParseException e) {
+        } catch (DateTimeParseException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
@@ -91,18 +97,23 @@ public class TravelController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Viagem não encontrada.");
         }
         var travelModel = travel0.get();
-        BeanUtils.copyProperties(travelDTO, travelModel);
+        try {
+            copyTravelProperties(travelDTO, travelModel);
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Formato de data ou horário inválido.");
+        }
         return ResponseEntity.status(HttpStatus.OK).body(travelRepository.save(travelModel));
     }
 
     // Método para deletar por data
     @DeleteMapping("/travel/byDate/{date}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<String> deleteTravelByDate(@PathVariable String date) {
         try {
-            Date parsedDate = dateFormat.parse(date);
+            Date parsedDate = parseTravelDate(date);
             travelRepository.deleteByDate(parsedDate);
             return ResponseEntity.status(HttpStatus.OK).body("Viagens na data " + date + " deletadas com sucesso.");
-        } catch (ParseException e) {
+        } catch (DateTimeParseException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Formato de data inválido.");
         }
     }
@@ -115,6 +126,21 @@ public class TravelController {
         }
         travelRepository.delete(travel0.get());
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Viagem deletado com sucesso.");
+    }
+
+    private void copyTravelProperties(TravelDTO travelDTO, Travel travelModel) {
+        BeanUtils.copyProperties(travelDTO, travelModel, "date", "startTime", "endTime");
+        travelModel.setDate(parseTravelDate(travelDTO.date()));
+        travelModel.setStartTime(parseTravelTime(travelDTO.startTime()));
+        travelModel.setEndTime(parseTravelTime(travelDTO.endTime()));
+    }
+
+    private Date parseTravelDate(String date) {
+        return java.sql.Date.valueOf(LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE));
+    }
+
+    private Date parseTravelTime(String time) {
+        return Time.valueOf(LocalTime.parse(time, DateTimeFormatter.ISO_LOCAL_TIME));
     }
 
 }
