@@ -4,14 +4,17 @@ import com.jardinahora.backend.dtos.TravelDTO;
 import com.jardinahora.backend.models.Travel;
 import com.jardinahora.backend.repositories.TravelRepository;
 import jakarta.validation.Valid;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -31,9 +34,12 @@ public class TravelController {
     // CRUD para Travel
     @PostMapping("/travel")
     public ResponseEntity<Travel> createTravel(@RequestBody @Valid TravelDTO travelDTO) {
-        var travelModel = new Travel();
-        BeanUtils.copyProperties(travelDTO, travelModel);
-        return ResponseEntity.status(HttpStatus.CREATED).body(travelRepository.save(travelModel));
+        try {
+            Travel travelModel = mapToTravel(travelDTO, new Travel());
+            return ResponseEntity.status(HttpStatus.CREATED).body(travelRepository.save(travelModel));
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/travel")
@@ -90,8 +96,12 @@ public class TravelController {
         if(travel0.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Viagem não encontrada.");
         }
-        var travelModel = travel0.get();
-        BeanUtils.copyProperties(travelDTO, travelModel);
+        Travel travelModel;
+        try {
+            travelModel = mapToTravel(travelDTO, travel0.get());
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Formato de data ou horário inválido.");
+        }
         return ResponseEntity.status(HttpStatus.OK).body(travelRepository.save(travelModel));
     }
 
@@ -115,6 +125,17 @@ public class TravelController {
         }
         travelRepository.delete(travel0.get());
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Viagem deletado com sucesso.");
+    }
+
+    private Travel mapToTravel(TravelDTO travelDTO, Travel travelModel) {
+        travelModel.setDriver(travelDTO.driver());
+        travelModel.setVehicle(travelDTO.vehicle());
+        travelModel.setDate(java.sql.Date.valueOf(LocalDate.parse(travelDTO.date())));
+        travelModel.setStartTime(Time.valueOf(LocalTime.parse(travelDTO.startTime())));
+        travelModel.setEndTime(Time.valueOf(LocalTime.parse(travelDTO.endTime())));
+        travelModel.setDistanceTraveled(travelDTO.distanceTraveled());
+        travelModel.setNumberOfTrips(travelDTO.numberOfTrips());
+        return travelModel;
     }
 
 }
