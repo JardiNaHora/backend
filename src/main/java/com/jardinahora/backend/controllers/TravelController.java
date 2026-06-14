@@ -8,6 +8,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
@@ -97,6 +98,7 @@ public class TravelController {
 
     // Método para deletar por data
     @DeleteMapping("/travel/byDate/{date}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<String> deleteTravelByDate(@PathVariable String date) {
         try {
             Date parsedDate = dateFormat.parse(date);
@@ -108,6 +110,7 @@ public class TravelController {
     }
 
     @DeleteMapping("/travel/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> deleteTravel(@PathVariable(value = "id") UUID id) {
         Optional<Travel> travel0 = travelRepository.findById(id);
         if (travel0.isEmpty()) {
