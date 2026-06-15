@@ -4,16 +4,19 @@ import com.jardinahora.backend.dtos.TravelDTO;
 import com.jardinahora.backend.models.Travel;
 import com.jardinahora.backend.repositories.TravelRepository;
 import jakarta.validation.Valid;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,13 +29,19 @@ public class TravelController {
     @Autowired
     private TravelRepository travelRepository;
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static final ZoneId APP_ZONE = ZoneId.systemDefault();
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     // CRUD para Travel
     @PostMapping("/travel")
-    public ResponseEntity<Travel> createTravel(@RequestBody @Valid TravelDTO travelDTO) {
+    public ResponseEntity<Object> createTravel(@RequestBody @Valid TravelDTO travelDTO) {
         var travelModel = new Travel();
-        BeanUtils.copyProperties(travelDTO, travelModel);
+        try {
+            copyDtoToTravel(travelDTO, travelModel);
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Formato de data ou horário inválido.");
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(travelRepository.save(travelModel));
     }
 
@@ -56,10 +65,10 @@ public class TravelController {
     @GetMapping("/travel/byDate/{date}")
     public ResponseEntity<List<Travel>> getTravelsByDate(@PathVariable String date) {
         try {
-            Date parsedDate = dateFormat.parse(date);
+            Date parsedDate = parseDate(date);
             List<Travel> travels = travelRepository.findByDate(parsedDate);
             return new ResponseEntity<>(travels, HttpStatus.OK);
-        } catch (ParseException e) {
+        } catch (DateTimeParseException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
@@ -67,11 +76,11 @@ public class TravelController {
     @GetMapping("/travel/byDateRange")
     public ResponseEntity<List<Travel>> getTravelsByDateRange(@RequestParam String startDate, @RequestParam String endDate) {
         try {
-            Date start = dateFormat.parse(startDate);
-            Date end = dateFormat.parse(endDate);
+            Date start = parseDate(startDate);
+            Date end = parseDate(endDate);
             List<Travel> travels = travelRepository.findByDateBetween(start, end);
             return new ResponseEntity<>(travels, HttpStatus.OK);
-        } catch (ParseException e) {
+        } catch (DateTimeParseException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
@@ -79,7 +88,10 @@ public class TravelController {
     // Método para obter todas as datas distintas
     @GetMapping("/travel/distinctDates")
     public ResponseEntity<List<String>> getDistinctDates() {
-        List<String> distinctDates = travelRepository.findDistinctDates();
+        List<String> distinctDates = travelRepository.findDistinctDates().stream()
+                .filter(Objects::nonNull)
+                .map(TravelController::formatDate)
+                .toList();
         return ResponseEntity.status(HttpStatus.OK).body(distinctDates);
     }
 
@@ -91,7 +103,11 @@ public class TravelController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Viagem não encontrada.");
         }
         var travelModel = travel0.get();
-        BeanUtils.copyProperties(travelDTO, travelModel);
+        try {
+            copyDtoToTravel(travelDTO, travelModel);
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Formato de data ou horário inválido.");
+        }
         return ResponseEntity.status(HttpStatus.OK).body(travelRepository.save(travelModel));
     }
 
@@ -99,10 +115,10 @@ public class TravelController {
     @DeleteMapping("/travel/byDate/{date}")
     public ResponseEntity<String> deleteTravelByDate(@PathVariable String date) {
         try {
-            Date parsedDate = dateFormat.parse(date);
+            Date parsedDate = parseDate(date);
             travelRepository.deleteByDate(parsedDate);
             return ResponseEntity.status(HttpStatus.OK).body("Viagens na data " + date + " deletadas com sucesso.");
-        } catch (ParseException e) {
+        } catch (DateTimeParseException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Formato de data inválido.");
         }
     }
@@ -115,6 +131,30 @@ public class TravelController {
         }
         travelRepository.delete(travel0.get());
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Viagem deletado com sucesso.");
+    }
+
+    private static void copyDtoToTravel(TravelDTO travelDTO, Travel travel) {
+        travel.setDriver(travelDTO.driver());
+        travel.setVehicle(travelDTO.vehicle());
+        travel.setDate(parseDate(travelDTO.date()));
+        travel.setStartTime(parseTime(travelDTO.startTime()));
+        travel.setEndTime(parseTime(travelDTO.endTime()));
+        travel.setDistanceTraveled(travelDTO.distanceTraveled());
+        travel.setNumberOfTrips(travelDTO.numberOfTrips());
+    }
+
+    private static Date parseDate(String date) {
+        LocalDate localDate = LocalDate.parse(date, DATE_FORMATTER);
+        return Date.from(localDate.atStartOfDay(APP_ZONE).toInstant());
+    }
+
+    private static Date parseTime(String time) {
+        LocalTime localTime = LocalTime.parse(time, TIME_FORMATTER);
+        return Date.from(localTime.atDate(LocalDate.of(1970, 1, 1)).atZone(APP_ZONE).toInstant());
+    }
+
+    private static String formatDate(Date date) {
+        return DATE_FORMATTER.format(date.toInstant().atZone(APP_ZONE).toLocalDate());
     }
 
 }
