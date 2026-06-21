@@ -92,7 +92,7 @@ public class UserController {
     }
 
     @DeleteMapping("/user/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> deleteUser(@PathVariable(value = "id") UUID id) {
         Optional<User> user0 = userRepository.findById(id);
         if (user0.isEmpty()) {
@@ -103,6 +103,7 @@ public class UserController {
     }
 
     @PostMapping("/user/{email}/{role}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public void changeToAdmin(@PathVariable String email, @PathVariable String role) {
         User user = userRepository.findByUsername(email);
         user.getRoles().add(userRoleRepository.findByName(role));
