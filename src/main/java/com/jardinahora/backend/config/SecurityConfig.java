@@ -3,11 +3,13 @@ package com.jardinahora.backend.config;
 import com.jardinahora.backend.services.oauth2.security.CustomOAuth2UserDetailService;
 import com.jardinahora.backend.services.oauth2.security.handler.CustomOAuth2FailureHandler;
 import com.jardinahora.backend.services.oauth2.security.handler.CustomOAuth2SuccessHandler;
+import com.jardinahora.backend.repositories.UserRepository;
 import com.jardinahora.backend.services.security.UserDetailsServiceCustom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -50,8 +52,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return new UserDetailsServiceCustom();
+    public UserDetailsService userDetailsService(UserRepository userRepository) {
+        return new UserDetailsServiceCustom(userRepository);
     }
 
     @Value("${frontend.url}")
@@ -80,11 +82,11 @@ public class SecurityConfig {
     }*/
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
 
         AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
 
-        builder.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
+        builder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
 
         AuthenticationManager manager = builder.build();
 
@@ -96,6 +98,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(customizer -> customizer
                         .requestMatchers("/home/auth").permitAll()
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/user/*/*").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/travel/**", "/vehicle/**").hasAuthority("ADMIN")
                         .requestMatchers("/user/**").hasAuthority("USER")
                         .anyRequest().authenticated()
                 )

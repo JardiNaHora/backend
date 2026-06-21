@@ -8,6 +8,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -66,6 +67,7 @@ public class VehicleController {
     }
 
     @DeleteMapping("/vehicle/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> deleteVehicle(@PathVariable(value = "id") UUID id) {
         Optional<Vehicle> vehicle0 = vehicleRepository.findById(id);
         if (vehicle0.isEmpty()) {
