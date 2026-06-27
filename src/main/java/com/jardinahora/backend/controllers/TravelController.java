@@ -18,6 +18,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -95,6 +96,7 @@ public class TravelController {
     @GetMapping("/travel/distinctDates")
     public ResponseEntity<List<String>> getDistinctDates() {
         List<String> distinctDates = travelRepository.findDistinctDates().stream()
+                .filter(Objects::nonNull)
                 .map(this::formatDate)
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(distinctDates);

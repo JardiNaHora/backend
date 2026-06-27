@@ -3,6 +3,7 @@ package com.jardinahora.backend.repositories;
 import com.jardinahora.backend.models.Travel;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -17,5 +18,6 @@ public interface TravelRepository extends JpaRepository<Travel, UUID> {
     @Query("SELECT DISTINCT t.date FROM Travel t")
     List<Date> findDistinctDates();
 
+    @Transactional
     void deleteByDate(Date date);
 }
