@@ -3,7 +3,6 @@ package com.jardinahora.backend.config;
 import com.jardinahora.backend.services.oauth2.security.CustomOAuth2UserDetailService;
 import com.jardinahora.backend.services.oauth2.security.handler.CustomOAuth2FailureHandler;
 import com.jardinahora.backend.services.oauth2.security.handler.CustomOAuth2SuccessHandler;
-import com.jardinahora.backend.services.security.UserDetailsServiceCustom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -44,14 +43,12 @@ public class SecurityConfig {
     @Autowired
     private CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
+    @Autowired
+    private UserDetailsService userDetailsService;
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return new UserDetailsServiceCustom();
     }
 
     @Value("${frontend.url}")
@@ -84,7 +81,7 @@ public class SecurityConfig {
 
         AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
 
-        builder.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
+        builder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
 
         AuthenticationManager manager = builder.build();
 
@@ -96,7 +93,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(customizer -> customizer
                         .requestMatchers("/home/auth").permitAll()
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
-                        .requestMatchers("/user/**").hasAuthority("USER")
+                        .requestMatchers("/user/**").hasAnyAuthority("USER", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin( form -> {
