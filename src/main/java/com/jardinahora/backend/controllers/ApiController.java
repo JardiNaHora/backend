@@ -7,17 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import java.util.Map;
 
 @Controller
 public class ApiController {
@@ -27,17 +22,14 @@ public class ApiController {
 
     @GetMapping("/api/check-auth")
     @ResponseBody
-    public ResponseEntity<UserDetails> checkAuth() {
-
-        // Obtém o token de autenticação do usuário atual
+    public ResponseEntity<Map<String, Object>> checkAuth() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Obtém o objeto UserDetails do usuário
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-        // Retorna o usuário
-        return ResponseEntity.ok(userDetails);
-
+        return ResponseEntity.ok(Map.of(
+                "username", authentication.getName(),
+                "roles", authentication.getAuthorities(),
+                "isAuthenticated", authentication.isAuthenticated()
+        ));
     }
 
     @GetMapping("/api/check-register/{email}")
@@ -47,6 +39,6 @@ public class ApiController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
         }
-        return ResponseEntity.status(HttpStatus.OK).body(user);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("registered", true));
     }
 }

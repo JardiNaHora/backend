@@ -4,6 +4,7 @@ import com.jardinahora.backend.services.oauth2.security.CustomOAuth2UserDetailSe
 import com.jardinahora.backend.services.oauth2.security.handler.CustomOAuth2FailureHandler;
 import com.jardinahora.backend.services.oauth2.security.handler.CustomOAuth2SuccessHandler;
 import com.jardinahora.backend.services.security.UserDetailsServiceCustom;
+import com.jardinahora.backend.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -44,6 +45,9 @@ public class SecurityConfig {
     @Autowired
     private CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -51,7 +55,7 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return new UserDetailsServiceCustom();
+        return new UserDetailsServiceCustom(userRepository);
     }
 
     @Value("${frontend.url}")
