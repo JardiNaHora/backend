@@ -72,7 +72,8 @@ class UserSecurityTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isInstanceOf(Map.class);
-        assertThat((Map<?, ?>) response.getBody()).containsEntry("registered", true);
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
+        assertThat(body.get("registered")).isEqualTo(true);
     }
 
     @Test
