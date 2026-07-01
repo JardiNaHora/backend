@@ -16,6 +16,8 @@ import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -74,6 +76,17 @@ class TravelControllerTest {
         assertThat(toLocalDate(existingTravel)).isEqualTo(LocalDate.of(2026, 7, 2));
         assertThat(toLocalTime(existingTravel.getStartTime())).isEqualTo(LocalTime.of(10, 15));
         assertThat(toLocalTime(existingTravel.getEndTime())).isEqualTo(LocalTime.of(11, 20));
+    }
+
+    @Test
+    void getDistinctDatesFormatsDatesAndSkipsNullValues() {
+        Date travelDate = Date.from(LocalDate.of(2026, 7, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        when(travelRepository.findDistinctDates()).thenReturn(Arrays.asList(travelDate, null));
+
+        ResponseEntity<java.util.List<String>> response = travelController.getDistinctDates();
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).containsExactly("2026-07-01");
     }
 
     @Test

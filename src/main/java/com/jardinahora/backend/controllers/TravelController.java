@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.time.LocalDate;
@@ -90,6 +91,7 @@ public class TravelController {
     public ResponseEntity<List<String>> getDistinctDates() {
         List<String> distinctDates = travelRepository.findDistinctDates()
                 .stream()
+                .filter(Objects::nonNull)
                 .map(this::formatDate)
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(distinctDates);
