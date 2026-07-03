@@ -102,10 +102,12 @@ class TravelControllerTest {
     }
 
     @Test
-    void travelDeletesRequireAdminAuthority() throws Exception {
+    void travelMutationsRequireAdminAuthority() throws Exception {
+        Method updateById = TravelController.class.getMethod("updateTravel", UUID.class, TravelDTO.class);
         Method deleteByDate = TravelController.class.getMethod("deleteTravelByDate", String.class);
         Method deleteById = TravelController.class.getMethod("deleteTravel", UUID.class);
 
+        assertEquals("hasAuthority('ADMIN')", updateById.getAnnotation(PreAuthorize.class).value());
         assertEquals("hasAuthority('ADMIN')", deleteByDate.getAnnotation(PreAuthorize.class).value());
         assertEquals("hasAuthority('ADMIN')", deleteById.getAnnotation(PreAuthorize.class).value());
     }

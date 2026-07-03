@@ -95,6 +95,7 @@ public class TravelController {
     }
 
     @PutMapping("/travel/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> updateTravel(@PathVariable(value = "id") UUID id,
                                                @RequestBody @Valid TravelDTO travelDTO) {
         Optional<Travel> travel0 = travelRepository.findById(id);
