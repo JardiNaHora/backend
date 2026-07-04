@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 class UserSecurityTest {
 
     @Test
-    void userPasswordIsNotSerialized() throws NoSuchFieldException {
+    void userPasswordIsNotSerialized() throws NoSuchFieldException, NoSuchMethodException {
         assertThat(User.class.getDeclaredField("password").getAnnotation(JsonIgnore.class)).isNotNull();
         assertThat(UserDetailsCustom.class.getMethod("getPassword").getAnnotation(JsonIgnore.class)).isNotNull();
         assertThat(OAuth2UserDetailCustom.class.getMethod("getPassword").getAnnotation(JsonIgnore.class)).isNotNull();
