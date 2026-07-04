@@ -3,6 +3,7 @@ package com.jardinahora.backend.config;
 import com.jardinahora.backend.services.oauth2.security.CustomOAuth2UserDetailService;
 import com.jardinahora.backend.services.oauth2.security.handler.CustomOAuth2FailureHandler;
 import com.jardinahora.backend.services.oauth2.security.handler.CustomOAuth2SuccessHandler;
+import com.jardinahora.backend.repositories.UserRepository;
 import com.jardinahora.backend.services.security.UserDetailsServiceCustom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,8 +51,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return new UserDetailsServiceCustom();
+    public UserDetailsService userDetailsService(UserRepository userRepository) {
+        return new UserDetailsServiceCustom(userRepository);
     }
 
     @Value("${frontend.url}")
@@ -80,11 +81,11 @@ public class SecurityConfig {
     }*/
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
 
         AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
 
-        builder.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
+        builder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
 
         AuthenticationManager manager = builder.build();
 
@@ -157,7 +158,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(frontendUrl));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
