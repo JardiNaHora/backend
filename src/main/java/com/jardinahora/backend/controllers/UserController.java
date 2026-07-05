@@ -1,18 +1,19 @@
 package com.jardinahora.backend.controllers;
 
 import com.jardinahora.backend.models.UserRole;
+import com.jardinahora.backend.models.Provider;
 import com.jardinahora.backend.models.User;
 import com.jardinahora.backend.repositories.UserRepository;
 import com.jardinahora.backend.dtos.UserDTO;
 import com.jardinahora.backend.repositories.UserRoleRepository;
 import com.jardinahora.backend.services.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +35,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     /*@GetMapping("/user")
     public Principal user(Principal principal) {
         return principal;
@@ -51,13 +55,22 @@ public class UserController {
 
     // CRUD User
     @PostMapping("/user")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<User> createUser(@RequestBody @Valid UserDTO userDTO) {
-        var userModel = new User();
-        BeanUtils.copyProperties(userDTO, userModel);
+        User userModel = new User();
+        if (!applyUserDTO(userDTO, userModel)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        userModel.setEnabled(true);
+        userModel.setAccountNonExpired(true);
+        userModel.setAccountNonLocked(true);
+        userModel.setCredentialsNonExpired(true);
+        userModel.setProviderId(Provider.local.name());
         return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(userModel));
     }
 
     @GetMapping("/user-all")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<User>> getAllUser() {
         List<User> userList = userRepository.findAll();
         if(!userList.isEmpty()) {
@@ -70,6 +83,7 @@ public class UserController {
     }
 
     @GetMapping("/user/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> getOneUser(@PathVariable(value = "id") UUID id) {
         Optional<User> user0 = userRepository.findById(id);
         if (user0.isEmpty()) {
@@ -80,6 +94,7 @@ public class UserController {
     }
 
     @PutMapping("/user/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> updateUser(@PathVariable(value = "id") UUID id,
                                                 @RequestBody @Valid UserDTO userDTO) {
         Optional<User> user0 = userRepository.findById(id);
@@ -87,12 +102,14 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
         }
         var userModel = user0.get();
-        BeanUtils.copyProperties(userDTO, userModel);
+        if (!applyUserDTO(userDTO, userModel)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Role inválida.");
+        }
         return ResponseEntity.status(HttpStatus.OK).body(userRepository.save(userModel));
     }
 
     @DeleteMapping("/user/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> deleteUser(@PathVariable(value = "id") UUID id) {
         Optional<User> user0 = userRepository.findById(id);
         if (user0.isEmpty()) {
@@ -103,10 +120,26 @@ public class UserController {
     }
 
     @PostMapping("/user/{email}/{role}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public void changeToAdmin(@PathVariable String email, @PathVariable String role) {
         User user = userRepository.findByUsername(email);
         user.getRoles().add(userRoleRepository.findByName(role));
         userService.save(user);
+    }
+
+    private boolean applyUserDTO(UserDTO userDTO, User userModel) {
+        userModel.setUsername(userDTO.getUsername());
+        if (userDTO.getPassword() != null && !userDTO.getPassword().isBlank()) {
+            userModel.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        }
+        if (userDTO.getRole() != null && !userDTO.getRole().isBlank()) {
+            UserRole role = userRoleRepository.findByName(userDTO.getRole());
+            if (role == null) {
+                return false;
+            }
+            userModel.setRoles(new HashSet<>(Set.of(role)));
+        }
+        return true;
     }
 
 
