@@ -1,5 +1,6 @@
 package com.jardinahora.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,6 +27,7 @@ public class User extends RepresentationModel<User> implements Serializable {
     private UUID id;
     private String username;
     private String email;
+    @JsonIgnore
     private String password;
 
     /*@Column(name = "role")
