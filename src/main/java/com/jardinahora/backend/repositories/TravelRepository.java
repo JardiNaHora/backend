@@ -15,7 +15,7 @@ public interface TravelRepository extends JpaRepository<Travel, UUID> {
     List<Travel> findByDateBetween(Date startDate, Date endDate);
 
     @Query("SELECT DISTINCT t.date FROM Travel t")
-    List<String> findDistinctDates();
+    List<Date> findDistinctDates();
 
     void deleteByDate(Date date);
 }
