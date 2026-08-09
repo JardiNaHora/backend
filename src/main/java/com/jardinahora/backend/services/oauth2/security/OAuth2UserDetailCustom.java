@@ -1,5 +1,6 @@
 package com.jardinahora.backend.services.oauth2.security;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -37,6 +38,7 @@ public class OAuth2UserDetailCustom implements OAuth2User, UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public String getPassword() {
         return password;
     }

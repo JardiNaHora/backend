@@ -45,10 +45,10 @@ public class Vehicle extends RepresentationModel<Vehicle> implements Serializabl
     public void setPlate(String plate) {
         this.plate = plate;
     }
-    public int getPassengers() {
+    public Integer getPassengers() {
         return passengers;
     }
-    public void setPassengers(int passengers) {
+    public void setPassengers(Integer passengers) {
         this.passengers = passengers;
     }
     
