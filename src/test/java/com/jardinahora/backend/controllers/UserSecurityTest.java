@@ -2,6 +2,7 @@ package com.jardinahora.backend.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jardinahora.backend.dtos.TravelDTO;
+import com.jardinahora.backend.dtos.TripDTO;
 import com.jardinahora.backend.dtos.UserDTO;
 import com.jardinahora.backend.dtos.VehicleDTO;
 import com.jardinahora.backend.models.User;
@@ -99,6 +100,10 @@ class UserSecurityTest {
         assertAdminOnly(VehicleController.class, "createVehicle", VehicleDTO.class);
         assertAdminOnly(VehicleController.class, "updateVehicle", UUID.class, VehicleDTO.class);
         assertAdminOnly(VehicleController.class, "deleteVehicle", UUID.class);
+
+        assertAdminOnly(TripController.class, "createTrip", TripDTO.class);
+        assertAdminOnly(TripController.class, "updateTrip", UUID.class, TripDTO.class);
+        assertAdminOnly(TripController.class, "deleteTrip", UUID.class);
     }
 
     @Test
