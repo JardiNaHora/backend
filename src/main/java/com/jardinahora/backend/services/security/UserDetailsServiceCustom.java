@@ -3,7 +3,6 @@ package com.jardinahora.backend.services.security;
 import com.jardinahora.backend.exceptions.BaseException;
 import com.jardinahora.backend.models.User;
 import com.jardinahora.backend.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,7 +15,11 @@ import java.util.stream.Collectors;
 
 public class UserDetailsServiceCustom implements UserDetailsService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public UserDetailsServiceCustom(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

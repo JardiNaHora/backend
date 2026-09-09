@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +35,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     /*@GetMapping("/user")
     public Principal user(Principal principal) {
         return principal;
@@ -51,13 +55,28 @@ public class UserController {
 
     // CRUD User
     @PostMapping("/user")
-    public ResponseEntity<User> createUser(@RequestBody @Valid UserDTO userDTO) {
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Object> createUser(@RequestBody @Valid UserDTO userDTO) {
         var userModel = new User();
-        BeanUtils.copyProperties(userDTO, userModel);
+        BeanUtils.copyProperties(userDTO, userModel, "password", "role");
+        if (userDTO.getPassword() == null || userDTO.getRole() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Senha e perfil são obrigatórios.");
+        }
+        UserRole userRole = userRoleRepository.findByName(userDTO.getRole());
+        if (userRole == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Perfil inválido.");
+        }
+        userModel.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        userModel.setRoles(new HashSet<>(Set.of(userRole)));
+        userModel.setEnabled(true);
+        userModel.setAccountNonExpired(true);
+        userModel.setAccountNonLocked(true);
+        userModel.setCredentialsNonExpired(true);
         return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(userModel));
     }
 
     @GetMapping("/user-all")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<User>> getAllUser() {
         List<User> userList = userRepository.findAll();
         if(!userList.isEmpty()) {
@@ -70,6 +89,7 @@ public class UserController {
     }
 
     @GetMapping("/user/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> getOneUser(@PathVariable(value = "id") UUID id) {
         Optional<User> user0 = userRepository.findById(id);
         if (user0.isEmpty()) {
@@ -80,6 +100,7 @@ public class UserController {
     }
 
     @PutMapping("/user/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> updateUser(@PathVariable(value = "id") UUID id,
                                                 @RequestBody @Valid UserDTO userDTO) {
         Optional<User> user0 = userRepository.findById(id);
@@ -87,12 +108,22 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
         }
         var userModel = user0.get();
-        BeanUtils.copyProperties(userDTO, userModel);
+        BeanUtils.copyProperties(userDTO, userModel, "password", "role");
+        if (userDTO.getPassword() != null) {
+            userModel.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        }
+        if (userDTO.getRole() != null) {
+            UserRole userRole = userRoleRepository.findByName(userDTO.getRole());
+            if (userRole == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Perfil inválido.");
+            }
+            userModel.setRoles(new HashSet<>(Set.of(userRole)));
+        }
         return ResponseEntity.status(HttpStatus.OK).body(userRepository.save(userModel));
     }
 
     @DeleteMapping("/user/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> deleteUser(@PathVariable(value = "id") UUID id) {
         Optional<User> user0 = userRepository.findById(id);
         if (user0.isEmpty()) {
@@ -103,10 +134,22 @@ public class UserController {
     }
 
     @PostMapping("/user/{email}/{role}")
-    public void changeToAdmin(@PathVariable String email, @PathVariable String role) {
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Object> changeToAdmin(@PathVariable String email, @PathVariable String role) {
         User user = userRepository.findByUsername(email);
-        user.getRoles().add(userRoleRepository.findByName(role));
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+        }
+        UserRole userRole = userRoleRepository.findByName(role);
+        if (userRole == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Perfil inválido.");
+        }
+        if (user.getRoles() == null) {
+            user.setRoles(new HashSet<>());
+        }
+        user.getRoles().add(userRole);
         userService.save(user);
+        return ResponseEntity.status(HttpStatus.OK).body("Perfil atualizado com sucesso.");
     }
 
 
