@@ -4,7 +4,6 @@ import com.jardinahora.backend.dtos.TripDTO;
 import com.jardinahora.backend.models.Trip;
 import com.jardinahora.backend.repositories.TripRepository;
 import jakarta.validation.Valid;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,7 @@ public class TripController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Trip> createTrip(@RequestBody @Valid TripDTO tripDTO) {
         var tripModel = new Trip();
-        BeanUtils.copyProperties(tripDTO, tripModel);
+        copyDtoToTrip(tripDTO, tripModel);
         return ResponseEntity.status(HttpStatus.CREATED).body(tripRepository.save(tripModel));
     }
 
@@ -64,7 +63,7 @@ public class TripController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Viagem não encontrada.");
         }
         var tripModel = trip0.get();
-        BeanUtils.copyProperties(tripDTO, tripModel);
+        copyDtoToTrip(tripDTO, tripModel);
         return ResponseEntity.status(HttpStatus.OK).body(tripRepository.save(tripModel));
     }
 
@@ -77,6 +76,10 @@ public class TripController {
         }
         tripRepository.delete(trip0.get());
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Viagem deletado com sucesso.");
+    }
+
+    private static void copyDtoToTrip(TripDTO tripDTO, Trip trip) {
+        trip.setRoute(tripDTO.route());
     }
 
 }

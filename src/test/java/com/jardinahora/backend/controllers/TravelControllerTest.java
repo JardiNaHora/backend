@@ -61,9 +61,13 @@ class TravelControllerTest {
         verify(travelRepository).save(captor.capture());
         Travel savedTravel = captor.getValue();
 
+        assertThat(savedTravel.getDriver()).isEqualTo("Driver");
+        assertThat(savedTravel.getVehicle()).isEqualTo("Vehicle");
         assertThat(toLocalDate(savedTravel.getDate())).isEqualTo(LocalDate.of(2026, 7, 6));
         assertThat(toLocalTime(savedTravel.getStartTime())).isEqualTo(LocalTime.of(8, 0));
         assertThat(toLocalTime(savedTravel.getEndTime())).isEqualTo(LocalTime.of(17, 30));
+        assertThat(savedTravel.getDistanceTraveled()).isEqualTo(120);
+        assertThat(savedTravel.getNumberOfTrips()).isEqualTo(3);
     }
 
     @Test
@@ -89,9 +93,13 @@ class TravelControllerTest {
         verify(travelRepository).save(captor.capture());
         Travel savedTravel = captor.getValue();
 
+        assertThat(savedTravel.getDriver()).isEqualTo("Driver");
+        assertThat(savedTravel.getVehicle()).isEqualTo("Vehicle");
         assertThat(toLocalDate(savedTravel.getDate())).isEqualTo(LocalDate.of(2026, 7, 7));
         assertThat(toLocalTime(savedTravel.getStartTime())).isEqualTo(LocalTime.of(9, 15));
         assertThat(toLocalTime(savedTravel.getEndTime())).isEqualTo(LocalTime.of(18, 45));
+        assertThat(savedTravel.getDistanceTraveled()).isEqualTo(80);
+        assertThat(savedTravel.getNumberOfTrips()).isEqualTo(2);
     }
 
     @Test

@@ -4,7 +4,6 @@ import com.jardinahora.backend.dtos.VehicleDTO;
 import com.jardinahora.backend.models.Vehicle;
 import com.jardinahora.backend.repositories.VehicleRepository;
 import jakarta.validation.Valid;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,7 @@ public class VehicleController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Vehicle> createVehicle(@RequestBody @Valid VehicleDTO vehicleDTO) {
         var vehicleModel = new Vehicle();
-        BeanUtils.copyProperties(vehicleDTO, vehicleModel);
+        copyDtoToVehicle(vehicleDTO, vehicleModel);
         return ResponseEntity.status(HttpStatus.CREATED).body(vehicleRepository.save(vehicleModel));
     }
 
@@ -64,7 +63,7 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Veículo não encontrada.");
         }
         var vehicleModel = vehicle0.get();
-        BeanUtils.copyProperties(vehicleDTO, vehicleModel);
+        copyDtoToVehicle(vehicleDTO, vehicleModel);
         return ResponseEntity.status(HttpStatus.OK).body(vehicleRepository.save(vehicleModel));
     }
 
@@ -77,6 +76,13 @@ public class VehicleController {
         }
         vehicleRepository.delete(vehicle0.get());
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Veículo deletado com sucesso.");
+    }
+
+    private static void copyDtoToVehicle(VehicleDTO vehicleDTO, Vehicle vehicle) {
+        vehicle.setType(vehicleDTO.type());
+        vehicle.setName(vehicleDTO.name());
+        vehicle.setPlate(vehicleDTO.plate());
+        vehicle.setPassengers(vehicleDTO.passengers());
     }
 
 }

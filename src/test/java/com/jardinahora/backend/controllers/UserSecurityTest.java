@@ -125,6 +125,7 @@ class UserSecurityTest {
         org.mockito.Mockito.verify(userRepository).save(captor.capture());
         User savedUser = captor.getValue();
 
+        assertThat(savedUser.getUsername()).isEqualTo("admin@example.com");
         assertThat(savedUser.getPassword()).isNotEqualTo("plain-password");
         assertThat(passwordEncoder.matches("plain-password", savedUser.getPassword())).isTrue();
         assertThat(savedUser.getRoles()).containsExactly(adminRole);

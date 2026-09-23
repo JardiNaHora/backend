@@ -4,7 +4,6 @@ import com.jardinahora.backend.dtos.TravelDTO;
 import com.jardinahora.backend.models.Travel;
 import com.jardinahora.backend.repositories.TravelRepository;
 import jakarta.validation.Valid;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -140,10 +139,13 @@ public class TravelController {
     }
 
     private static void copyDtoToTravel(TravelDTO travelDTO, Travel travel) {
-        BeanUtils.copyProperties(travelDTO, travel, "date", "startTime", "endTime");
+        travel.setDriver(travelDTO.driver());
+        travel.setVehicle(travelDTO.vehicle());
         travel.setDate(parseDate(travelDTO.date()));
         travel.setStartTime(parseTime(travelDTO.startTime()));
         travel.setEndTime(parseTime(travelDTO.endTime()));
+        travel.setDistanceTraveled(travelDTO.distanceTraveled());
+        travel.setNumberOfTrips(travelDTO.numberOfTrips());
     }
 
     private static Date parseDate(String value) {
