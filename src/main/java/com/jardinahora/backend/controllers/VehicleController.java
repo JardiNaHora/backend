@@ -4,10 +4,10 @@ import com.jardinahora.backend.dtos.VehicleDTO;
 import com.jardinahora.backend.models.Vehicle;
 import com.jardinahora.backend.repositories.VehicleRepository;
 import jakarta.validation.Valid;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,9 +25,10 @@ public class VehicleController {
 
     // CRUD Vehicle
     @PostMapping("/vehicle")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Vehicle> createVehicle(@RequestBody @Valid VehicleDTO vehicleDTO) {
         var vehicleModel = new Vehicle();
-        BeanUtils.copyProperties(vehicleDTO, vehicleModel);
+        copyDtoToVehicle(vehicleDTO, vehicleModel);
         return ResponseEntity.status(HttpStatus.CREATED).body(vehicleRepository.save(vehicleModel));
     }
 
@@ -54,6 +55,7 @@ public class VehicleController {
     }
 
     @PutMapping("/vehicle/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> updateVehicle(@PathVariable(value = "id") UUID id,
                                              @RequestBody @Valid VehicleDTO vehicleDTO) {
         Optional<Vehicle> vehicle0 = vehicleRepository.findById(id);
@@ -61,11 +63,12 @@ public class VehicleController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Veículo não encontrada.");
         }
         var vehicleModel = vehicle0.get();
-        BeanUtils.copyProperties(vehicleDTO, vehicleModel);
+        copyDtoToVehicle(vehicleDTO, vehicleModel);
         return ResponseEntity.status(HttpStatus.OK).body(vehicleRepository.save(vehicleModel));
     }
 
     @DeleteMapping("/vehicle/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> deleteVehicle(@PathVariable(value = "id") UUID id) {
         Optional<Vehicle> vehicle0 = vehicleRepository.findById(id);
         if (vehicle0.isEmpty()) {
@@ -73,6 +76,13 @@ public class VehicleController {
         }
         vehicleRepository.delete(vehicle0.get());
         return ResponseEntity.status(HttpStatus.OK).body("Cadastro de Veículo deletado com sucesso.");
+    }
+
+    private static void copyDtoToVehicle(VehicleDTO vehicleDTO, Vehicle vehicle) {
+        vehicle.setType(vehicleDTO.type());
+        vehicle.setName(vehicleDTO.name());
+        vehicle.setPlate(vehicleDTO.plate());
+        vehicle.setPassengers(vehicleDTO.passengers());
     }
 
 }
