@@ -1,5 +1,6 @@
 package com.jardinahora.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,7 +27,13 @@ public class User extends RepresentationModel<User> implements Serializable {
     private UUID id;
     private String username;
     private String email;
+    @JsonIgnore
     private String password;
+
+    @JsonIgnore
+    public String getPassword() {
+        return password;
+    }
 
     /*@Column(name = "role")
     @Enumerated(EnumType.STRING)
@@ -54,8 +61,14 @@ public class User extends RepresentationModel<User> implements Serializable {
     @Column(name = "email_confirmed")
     private boolean emailConfirmed = false;
 
+    @JsonIgnore
     @Column(name = "confirmation_token", length = 255)
     private String confirmationToken;
+
+    @JsonIgnore
+    public String getConfirmationToken() {
+        return confirmationToken;
+    }
 
     @Column(name = "token_expiration")
     private java.util.Date tokenExpiration;

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -43,10 +44,26 @@ public class ApiController {
     @GetMapping("/api/check-register/{email}")
     @ResponseBody
     public ResponseEntity<Object> checkRegister(@PathVariable(value = "email") String email) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!canReadAccount(authentication, email)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acesso negado.");
+        }
         User user = userRepository.findByUsername(email);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
         }
         return ResponseEntity.status(HttpStatus.OK).body(user);
+    }
+
+    private static boolean canReadAccount(Authentication authentication, String email) {
+        if (authentication == null || email == null) {
+            return false;
+        }
+        for (GrantedAuthority authority : authentication.getAuthorities()) {
+            if ("ADMIN".equals(authority.getAuthority())) {
+                return true;
+            }
+        }
+        return email.equals(authentication.getName());
     }
 }
