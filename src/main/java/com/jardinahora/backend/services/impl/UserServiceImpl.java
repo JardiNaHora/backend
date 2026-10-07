@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
             response.setCode(String.valueOf(HttpStatus.CREATED.value()));
             response.setMessage("Cadastro realizado com sucesso! Por favor, verifique seu e-mail para confirmar sua conta.");
             
-            log.info("Usuário registrado: {} - Token gerado: {}", user.getUsername(), confirmationToken);
+            log.info("Usuário registrado: {}", user.getUsername());
         } catch (Exception e) {
             log.error("Erro ao registrar usuário: {}", e.getMessage(), e);
             response.setCode(String.valueOf(HttpStatus.SERVICE_UNAVAILABLE.value()));

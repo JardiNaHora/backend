@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,13 +28,29 @@ public class DataInitializer implements ApplicationRunner {
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
     private final org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder passwordEncoder;
+    private final Environment environment;
 
     @Override
     public void run(ApplicationArguments args) {
         createRoleIfMissing("USER");
         createRoleIfMissing("ADMIN");
+        if (!isDevProfile(environment)) {
+            return;
+        }
         createDevUserIfMissing();
         createDevVehicleIfMissing();
+    }
+
+    static boolean isDevProfile(Environment environment) {
+        if (environment == null) {
+            return false;
+        }
+        for (String profile : environment.getActiveProfiles()) {
+            if ("dev".equals(profile)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void createRoleIfMissing(String roleName) {
@@ -67,7 +84,7 @@ public class DataInitializer implements ApplicationRunner {
             user.getRoles().add(userRole);
 
             userRepository.save(user);
-            log.info("Usuário de desenvolvimento 'dev@jardinahora.local' criado com senha 'dev123'.");
+            log.info("Usuário de desenvolvimento '{}' criado.", user.getUsername());
         }
     }
 

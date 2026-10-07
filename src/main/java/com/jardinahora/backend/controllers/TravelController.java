@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ public class TravelController {
 
     // CRUD para Travel
     @PostMapping("/travel")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Travel> createTravel(@RequestBody @Valid TravelDTO travelDTO) {
         var travelModel = new Travel();
         
@@ -104,6 +106,7 @@ public class TravelController {
     }
 
     @PutMapping("/travel/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> updateTravel(@PathVariable(value = "id") UUID id,
                                                @RequestBody @Valid TravelDTO travelDTO) {
         Optional<Travel> travel0 = travelRepository.findById(id);
@@ -131,6 +134,7 @@ public class TravelController {
 
     // Método para deletar por data
     @DeleteMapping("/travel/byDate/{date}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<String> deleteTravelByDate(@PathVariable String date) {
         LocalDateTime dateTime = DateTimeConverter.parse(date);
         if (dateTime == null) {
@@ -143,6 +147,7 @@ public class TravelController {
     }
 
     @DeleteMapping("/travel/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Object> deleteTravel(@PathVariable(value = "id") UUID id) {
         Optional<Travel> travel0 = travelRepository.findById(id);
         if (travel0.isEmpty()) {

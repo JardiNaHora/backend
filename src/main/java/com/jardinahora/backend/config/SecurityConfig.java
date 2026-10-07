@@ -102,7 +102,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/notifications/**").hasAuthority("USER")
                         .requestMatchers("/api/realtime/**").hasAuthority("USER")
-                        .requestMatchers("/user/**").hasAuthority("USER")
+                        .requestMatchers("/user/**").hasAnyAuthority("USER", "ADMIN")
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers("/actuator/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
