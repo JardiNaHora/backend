@@ -42,7 +42,7 @@ public class CustomOAuth2UserDetailService extends DefaultOAuth2UserService {
 
     }
 
-    private OAuth2User checkingOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
+    OAuth2User checkingOAuth2User(OAuth2UserRequest oAuth2UserRequest, OAuth2User oAuth2User) {
 
         OAuth2UserDetails oAuth2UserDetails =
                 OAuth2UserDetailFactory.getOAuth2UserDetails(
@@ -53,9 +53,13 @@ public class CustomOAuth2UserDetailService extends DefaultOAuth2UserService {
             throw new BaseException("400", "Não é possível encontrar as propriedades OAuth2 do usuário.");
         }
 
-        Optional<User> user = userRepository.findByUsernameAndProviderId(
-                oAuth2UserDetails.getEmail(),
-                oAuth2UserRequest.getClientRegistration().getRegistrationId());
+        String identity = oAuth2UserDetails.getEmail();
+        if (identity == null || identity.isBlank()) {
+            throw new BaseException("400", "Não foi possível obter a identificação da conta no provedor de login.");
+        }
+
+        String registrationId = oAuth2UserRequest.getClientRegistration().getRegistrationId();
+        Optional<User> user = userRepository.findByUsernameAndProviderId(identity, registrationId);
 
         User userDetail;
         if(user.isPresent()) {
@@ -63,12 +67,14 @@ public class CustomOAuth2UserDetailService extends DefaultOAuth2UserService {
             userDetail = user.get();
 
             if(!userDetail.getProviderId()
-                    .equals(oAuth2UserRequest.getClientRegistration().getRegistrationId())) {
+                    .equals(registrationId)) {
                 throw new BaseException("400", "Site de login inválido com " + userDetail.getProviderId());
             }
 
             userDetail = updateOAuth2UserDetail(userDetail, oAuth2UserDetails);
 
+        } else if (!userRepository.findAllByUsername(identity).isEmpty()) {
+            throw new BaseException("409", "Já existe uma conta com este identificador. Entre com o método de login original.");
         } else {
             userDetail = registerNewOAuth2UserDetail(oAuth2UserRequest, oAuth2UserDetails);
         }
